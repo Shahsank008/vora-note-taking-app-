@@ -1,0 +1,792 @@
+// ============================================================
+//  VORA NOTES — script.js
+//  Samsung Notes-inspired note-taking app
+// ============================================================
+
+(() => {
+"use strict";
+
+// ── DOM ──
+const $ = (s, p = document) => p.querySelector(s);
+const $$ = (s, p = document) => [...p.querySelectorAll(s)];
+
+const sidebar          = $('#sidebar');
+const hamburgerBtn     = $('#hamburgerBtn');
+const sidebarCloseBtn  = $('#sidebarCloseBtn');
+const themeToggle      = $('#themeToggle');
+const searchInput      = $('#searchInput');
+const sortBtn          = $('#sortBtn');
+const sortDropdown     = $('#sortDropdown');
+const viewToggleBtn    = $('#viewToggleBtn');
+const notesContainer   = $('#notesContainer');
+const emptyState       = $('#emptyState');
+const fabBtn           = $('#fabBtn');
+const fabMenu          = $('#fabMenu');
+const editorOverlay    = $('#editorOverlay');
+const editorBackBtn    = $('#editorBackBtn');
+const editorStarBtn    = $('#editorStarBtn');
+const editorAttachBtn  = $('#editorAttachBtn');
+const fileInput        = $('#fileInput');
+const editorMenuBtn    = $('#editorMenuBtn');
+const editorDropdown   = $('#editorDropdown');
+const editorTitle      = $('#editorTitle');
+const editorContent    = $('#editorContent');
+const attachmentsArea  = $('#attachmentsArea');
+const attachmentsList  = $('#attachmentsList');
+const editorWordCount  = $('#editorWordCount');
+const editorLastEdited = $('#editorLastEdited');
+const categoryTitle    = $('#currentCategoryTitle');
+const templateModal    = $('#templateModal');
+const templateModalClose = $('#templateModalClose');
+const toastEl          = $('#toast');
+const toastMsg         = $('#toastMsg');
+const toastUndo        = $('#toastUndo');
+const menuCategory     = $('#menuCategory');
+const categorySubmenu  = $('#categorySubmenu');
+const menuColor        = $('#menuColor');
+const colorPalette     = $('#colorPalette');
+const menuDelete       = $('#menuDelete');
+const menuShare        = $('#menuShare');
+const bannerCloseBtn   = $('#bannerCloseBtn');
+const downloadBanner   = $('#downloadBanner');
+
+// ── STATE ──
+let notes = [];
+let trashNotes = [];
+let currentNoteId = null;
+let currentCategory = 'all';
+let currentSort = 'updated';
+let viewMode = 'grid';
+let fabOpen = false;
+let autoSaveTimer = null;
+
+// ── TEMPLATES ──
+const templates = {
+    blank: { title: 'Untitled Note', content: '' },
+    dream: {
+        title: 'Daily Dream Log',
+        content: `Daily Dream:\n> \n\nResult:\n> \n\nConclusion:\n> `
+    },
+    meeting: {
+        title: 'Meeting Notes',
+        content: `📅 Date: ${new Date().toLocaleDateString()}\n👥 Attendees:\n- \n\n📋 Agenda:\n1. \n\n📝 Notes:\n\n\n✅ Action Items:\n- [ ] \n- [ ] `
+    },
+    todo: {
+        title: 'To-Do List',
+        content: `📋 To-Do List\n\n- [ ] \n- [ ] \n- [ ] \n- [ ] \n- [ ] \n\n✅ Completed:\n- [x] `
+    },
+    cornell: {
+        title: 'Cornell Notes',
+        content: `📚 Topic: \n📅 Date: ${new Date().toLocaleDateString()}\n${'─'.repeat(40)}\n\n🔑 Key Points / Questions:\n• \n• \n• \n\n${'─'.repeat(40)}\n\n📝 Notes:\n\n\n\n${'─'.repeat(40)}\n\n📖 Summary:\n`
+    },
+    gratitude: {
+        title: 'Gratitude Journal',
+        content: `🌅 ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n🙏 Three things I'm grateful for today:\n1. \n2. \n3. \n\n✨ What would make today great?\n\n\n🌙 Daily affirmation:\n`
+    }
+};
+
+// ── CATEGORY COLORS ──
+const catColors = { personal: '#6C5CE7', work: '#0984E3', ideas: '#00B894', journal: '#FDCB6E' };
+
+// ── FILE ICON COLORS ──
+const fileColors = {
+    pdf: '#E53935', doc: '#2979FF', docx: '#2979FF',
+    xls: '#43A047', xlsx: '#43A047',
+    ppt: '#FF6D00', pptx: '#FF6D00',
+    txt: '#78909C', zip: '#8D6E63',
+    jpg: '#AB47BC', jpeg: '#AB47BC', png: '#AB47BC', gif: '#AB47BC', webp: '#AB47BC', svg: '#AB47BC',
+    mp3: '#00BCD4', mp4: '#F44336'
+};
+
+// ============================================================
+//  INIT
+// ============================================================
+function init() {
+    loadData();
+    applyTheme();
+    renderNotes();
+    updateBadges();
+    bindEvents();
+    // Restore view mode
+    const saved = localStorage.getItem('vn_viewMode');
+    if (saved === 'list') { viewMode = 'list'; notesContainer.classList.replace('grid-view', 'list-view'); }
+    // Restore sort
+    const savedSort = localStorage.getItem('vn_sort');
+    if (savedSort) { currentSort = savedSort; $$('[data-sort]', sortDropdown).forEach(b => b.classList.toggle('active', b.dataset.sort === currentSort)); }
+    // Banner dismiss
+    if (localStorage.getItem('vn_bannerDismissed')) {
+        downloadBanner.classList.add('hidden');
+        document.body.classList.remove('banner-visible');
+    }
+}
+
+// ── DATA ──
+function loadData() {
+    try {
+        notes = JSON.parse(localStorage.getItem('vn_notes')) || [];
+        trashNotes = JSON.parse(localStorage.getItem('vn_trash')) || [];
+    } catch { notes = []; trashNotes = []; }
+}
+function saveData() {
+    localStorage.setItem('vn_notes', JSON.stringify(notes));
+    localStorage.setItem('vn_trash', JSON.stringify(trashNotes));
+}
+
+// ── THEME ──
+function applyTheme() {
+    const saved = localStorage.getItem('vn_theme');
+    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+}
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('vn_theme', isDark ? 'light' : 'dark');
+}
+
+// ============================================================
+//  EVENTS
+// ============================================================
+function bindEvents() {
+    // Sidebar
+    hamburgerBtn.addEventListener('click', () => sidebar.classList.add('open'));
+    sidebarCloseBtn.addEventListener('click', () => sidebar.classList.remove('open'));
+    themeToggle.addEventListener('click', toggleTheme);
+
+    // Category nav
+    $$('.nav-item[data-category]').forEach(item => {
+        item.addEventListener('click', () => {
+            $$('.nav-item').forEach(n => n.classList.remove('active'));
+            item.classList.add('active');
+            currentCategory = item.dataset.category;
+            categoryTitle.textContent = item.querySelector('span:not(.nav-badge):not(.cat-dot)').textContent;
+            renderNotes();
+            sidebar.classList.remove('open');
+        });
+    });
+
+    // Search
+    searchInput.addEventListener('input', () => renderNotes());
+
+    // Sort
+    sortBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = sortBtn.getBoundingClientRect();
+        sortDropdown.style.top = rect.bottom + 6 + 'px';
+        sortDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+        sortDropdown.classList.toggle('hidden');
+        sortDropdown.classList.toggle('show');
+    });
+    $$('[data-sort]', sortDropdown).forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentSort = btn.dataset.sort;
+            localStorage.setItem('vn_sort', currentSort);
+            $$('[data-sort]', sortDropdown).forEach(b => b.classList.toggle('active', b === btn));
+            sortDropdown.classList.add('hidden');
+            sortDropdown.classList.remove('show');
+            renderNotes();
+        });
+    });
+
+    // View toggle
+    viewToggleBtn.addEventListener('click', () => {
+        viewMode = viewMode === 'grid' ? 'list' : 'grid';
+        notesContainer.classList.toggle('grid-view', viewMode === 'grid');
+        notesContainer.classList.toggle('list-view', viewMode === 'list');
+        localStorage.setItem('vn_viewMode', viewMode);
+    });
+
+    // FAB
+    fabBtn.addEventListener('click', () => {
+        fabOpen = !fabOpen;
+        fabBtn.classList.toggle('open', fabOpen);
+        fabMenu.classList.toggle('hidden', !fabOpen);
+    });
+    $$('.fab-option', fabMenu).forEach(btn => {
+        btn.addEventListener('click', () => {
+            closeFab();
+            if (btn.dataset.action === 'template') { templateModal.classList.remove('hidden'); }
+            else { createNote('blank'); }
+        });
+    });
+
+    // Template modal
+    templateModalClose.addEventListener('click', () => templateModal.classList.add('hidden'));
+    templateModal.addEventListener('click', (e) => { if (e.target === templateModal) templateModal.classList.add('hidden'); });
+    $$('.template-card', templateModal).forEach(card => {
+        card.addEventListener('click', () => {
+            templateModal.classList.add('hidden');
+            createNote(card.dataset.template);
+        });
+    });
+
+    // Editor back
+    editorBackBtn.addEventListener('click', closeEditor);
+    editorOverlay.addEventListener('click', (e) => { if (e.target === editorOverlay) closeEditor(); });
+
+    // Editor star
+    editorStarBtn.addEventListener('click', () => {
+        const note = getNoteById(currentNoteId);
+        if (!note) return;
+        note.starred = !note.starred;
+        editorOverlay.querySelector('.editor-panel').classList.toggle('starred', note.starred);
+        saveData();
+    });
+
+    // Attach
+    editorAttachBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileAttach);
+
+    // Editor menu
+    editorMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); editorDropdown.classList.toggle('show'); });
+
+    // Category submenu
+    menuCategory.addEventListener('click', (e) => { e.stopPropagation(); categorySubmenu.classList.toggle('show'); });
+    $$('.cat-option', categorySubmenu).forEach(btn => {
+        btn.addEventListener('click', () => {
+            const note = getNoteById(currentNoteId);
+            if (!note) return;
+            note.category = btn.dataset.cat === 'none' ? '' : btn.dataset.cat;
+            saveData(); updateBadges();
+            categorySubmenu.classList.remove('show');
+            editorDropdown.classList.remove('show');
+            showToast('Category updated');
+        });
+    });
+
+    // Color
+    menuColor.addEventListener('click', (e) => { e.stopPropagation(); colorPalette.classList.toggle('show'); });
+    $$('.color-swatch', colorPalette).forEach(swatch => {
+        swatch.addEventListener('click', () => {
+            const note = getNoteById(currentNoteId);
+            if (!note) return;
+            note.color = swatch.dataset.color === 'default' ? '' : swatch.dataset.color;
+            $$('.color-swatch', colorPalette).forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+            applyEditorColor(note.color);
+            saveData();
+        });
+    });
+
+    // Share
+    menuShare.addEventListener('click', () => {
+        const note = getNoteById(currentNoteId);
+        if (!note) return;
+        const text = `${note.title}\n\n${note.content}`;
+        if (navigator.share) { navigator.share({ title: note.title, text }); }
+        else { navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard')); }
+        editorDropdown.classList.remove('show');
+    });
+
+    // Delete
+    menuDelete.addEventListener('click', () => {
+        const note = getNoteById(currentNoteId);
+        if (!note) return;
+        editorDropdown.classList.remove('show');
+        deleteNote(note);
+    });
+
+    // Formatting toolbar
+    $$('.fmt-btn').forEach(btn => {
+        btn.addEventListener('click', () => handleFormat(btn.dataset.action));
+    });
+
+    // Editor autosave
+    editorTitle.addEventListener('input', scheduleAutoSave);
+    editorContent.addEventListener('input', () => { scheduleAutoSave(); updateEditorMeta(); });
+
+    // Banner close
+    bannerCloseBtn.addEventListener('click', () => {
+        downloadBanner.classList.add('hidden');
+        document.body.classList.remove('banner-visible');
+        localStorage.setItem('vn_bannerDismissed', '1');
+    });
+
+    // Global click to close menus
+    document.addEventListener('click', () => {
+        editorDropdown.classList.remove('show');
+        categorySubmenu.classList.remove('show');
+        colorPalette.classList.remove('show');
+        sortDropdown.classList.add('hidden');
+        sortDropdown.classList.remove('show');
+        if (fabOpen) closeFab();
+    });
+}
+
+// ============================================================
+//  NOTES CRUD
+// ============================================================
+function createNote(templateKey) {
+    const tmpl = templates[templateKey] || templates.blank;
+    const note = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        title: tmpl.title,
+        content: tmpl.content,
+        category: '',
+        color: '',
+        starred: false,
+        attachments: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    notes.unshift(note);
+    saveData();
+    renderNotes();
+    updateBadges();
+    openEditor(note.id);
+    // Focus appropriately
+    if (templateKey === 'blank') editorTitle.focus();
+    else editorContent.focus();
+}
+
+function deleteNote(note) {
+    notes = notes.filter(n => n.id !== note.id);
+    note.deletedAt = new Date().toISOString();
+    trashNotes.unshift(note);
+    saveData();
+    closeEditor();
+    renderNotes();
+    updateBadges();
+    showToast('Note moved to trash', () => {
+        // Undo
+        trashNotes = trashNotes.filter(n => n.id !== note.id);
+        delete note.deletedAt;
+        notes.unshift(note);
+        saveData();
+        renderNotes();
+        updateBadges();
+    });
+}
+
+function permanentlyDeleteFromTrash(noteId) {
+    trashNotes = trashNotes.filter(n => n.id !== noteId);
+    saveData();
+    renderNotes();
+    updateBadges();
+    showToast('Permanently deleted');
+}
+
+function restoreFromTrash(noteId) {
+    const idx = trashNotes.findIndex(n => n.id === noteId);
+    if (idx === -1) return;
+    const note = trashNotes.splice(idx, 1)[0];
+    delete note.deletedAt;
+    notes.unshift(note);
+    saveData();
+    renderNotes();
+    updateBadges();
+    showToast('Note restored');
+}
+
+function getNoteById(id) {
+    return notes.find(n => n.id === id) || trashNotes.find(n => n.id === id);
+}
+
+// ============================================================
+//  ATTACHMENTS
+// ============================================================
+function handleFileAttach() {
+    const note = getNoteById(currentNoteId);
+    if (!note || !fileInput.files.length) return;
+
+    Array.from(fileInput.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const att = {
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2, 4),
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                ext: file.name.split('.').pop().toLowerCase(),
+                data: reader.result // base64 data URL
+            };
+            note.attachments = note.attachments || [];
+            note.attachments.push(att);
+            note.updatedAt = new Date().toISOString();
+            saveData();
+            renderAttachments(note);
+            renderNotes();
+        };
+        reader.readAsDataURL(file);
+    });
+    fileInput.value = '';
+}
+
+function removeAttachment(noteId, attId) {
+    const note = getNoteById(noteId);
+    if (!note) return;
+    note.attachments = note.attachments.filter(a => a.id !== attId);
+    note.updatedAt = new Date().toISOString();
+    saveData();
+    renderAttachments(note);
+    renderNotes();
+}
+
+function downloadAttachment(att) {
+    const a = document.createElement('a');
+    a.href = att.data;
+    a.download = att.name;
+    a.click();
+}
+
+function renderAttachments(note) {
+    const atts = note.attachments || [];
+    if (atts.length === 0) {
+        attachmentsArea.classList.add('hidden');
+        return;
+    }
+    attachmentsArea.classList.remove('hidden');
+    attachmentsList.innerHTML = atts.map(att => {
+        const ext = att.ext;
+        const color = fileColors[ext] || '#78909C';
+        const isImage = ['jpg','jpeg','png','gif','webp','svg'].includes(ext);
+        const sizeStr = formatFileSize(att.size);
+        return `
+            <div class="attachment-chip" data-att-id="${att.id}">
+                ${isImage
+                    ? `<img class="attachment-img-preview" src="${att.data}" alt="${esc(att.name)}">`
+                    : `<div class="attachment-icon" style="background:${color}">${ext}</div>`
+                }
+                <div class="attachment-info">
+                    <span class="attachment-name" title="${esc(att.name)}">${esc(att.name)}</span>
+                    <span class="attachment-size">${sizeStr}</span>
+                </div>
+                <button class="attachment-remove" title="Remove" data-remove="${att.id}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        `;
+    }).join('');
+
+    // Bind chip clicks
+    $$('.attachment-chip', attachmentsList).forEach(chip => {
+        const attId = chip.dataset.attId;
+        const att = atts.find(a => a.id === attId);
+        chip.addEventListener('click', (e) => {
+            if (e.target.closest('.attachment-remove')) return;
+            if (att) downloadAttachment(att);
+        });
+    });
+    $$('.attachment-remove', attachmentsList).forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeAttachment(note.id, btn.dataset.remove);
+        });
+    });
+}
+
+// ============================================================
+//  EDITOR
+// ============================================================
+function openEditor(id) {
+    currentNoteId = id;
+    const note = getNoteById(id);
+    if (!note) return;
+
+    const panel = editorOverlay.querySelector('.editor-panel');
+    editorTitle.value = note.title;
+    editorContent.value = note.content;
+    panel.classList.toggle('starred', !!note.starred);
+    applyEditorColor(note.color);
+
+    // Color swatch active state
+    $$('.color-swatch', colorPalette).forEach(s => {
+        const sc = s.dataset.color;
+        s.classList.toggle('active', (note.color || 'default') === sc || (!note.color && sc === 'default'));
+    });
+
+    renderAttachments(note);
+    updateEditorMeta();
+
+    // Show trash vs normal mode
+    const isTrash = currentCategory === 'trash';
+    $$('.fmt-btn').forEach(b => b.disabled = isTrash);
+    editorTitle.readOnly = isTrash;
+    editorContent.readOnly = isTrash;
+
+    editorOverlay.classList.add('open');
+}
+
+function closeEditor() {
+    saveCurrentNote();
+    editorOverlay.classList.remove('open');
+    editorDropdown.classList.remove('show');
+    categorySubmenu.classList.remove('show');
+    colorPalette.classList.remove('show');
+    currentNoteId = null;
+    renderNotes();
+    updateBadges();
+}
+
+function saveCurrentNote() {
+    if (!currentNoteId) return;
+    const note = getNoteById(currentNoteId);
+    if (!note || note.deletedAt) return;
+    const newTitle = editorTitle.value.trim() || 'Untitled Note';
+    const newContent = editorContent.value;
+    if (note.title !== newTitle || note.content !== newContent) {
+        note.title = newTitle;
+        note.content = newContent;
+        note.updatedAt = new Date().toISOString();
+        saveData();
+    }
+}
+
+function scheduleAutoSave() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(saveCurrentNote, 400);
+}
+
+function updateEditorMeta() {
+    const text = editorContent.value.trim();
+    const wc = text ? text.split(/\s+/).length : 0;
+    editorWordCount.textContent = `${wc} word${wc !== 1 ? 's' : ''}`;
+    const note = getNoteById(currentNoteId);
+    if (note) {
+        const d = new Date(note.updatedAt);
+        editorLastEdited.textContent = formatRelativeTime(d);
+    }
+}
+
+function applyEditorColor(color) {
+    const panel = editorOverlay.querySelector('.editor-panel');
+    if (color && color !== 'default') {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        panel.style.background = isDark ? adjustColorForDark(color) : color;
+    } else {
+        panel.style.background = '';
+    }
+}
+
+function adjustColorForDark(hex) {
+    // Darken the pastel color for dark mode
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return `rgb(${Math.round(r*.2)},${Math.round(g*.2)},${Math.round(b*.2)})`;
+}
+
+// ============================================================
+//  FORMAT TOOLBAR
+// ============================================================
+function handleFormat(action) {
+    if (action === 'template') { templateModal.classList.remove('hidden'); return; }
+    const ta = editorContent;
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    const sel = ta.value.substring(start, end);
+    let insert = '';
+    switch (action) {
+        case 'bold':      insert = `**${sel || 'bold'}**`; break;
+        case 'italic':    insert = `_${sel || 'italic'}_`; break;
+        case 'underline': insert = `__${sel || 'underline'}__`; break;
+        case 'strike':    insert = `~~${sel || 'strikethrough'}~~`; break;
+        case 'h1':        insert = `\n# ${sel || 'Heading 1'}\n`; break;
+        case 'h2':        insert = `\n## ${sel || 'Heading 2'}\n`; break;
+        case 'h3':        insert = `\n### ${sel || 'Heading 3'}\n`; break;
+        case 'bullet':    insert = `\n• ${sel || 'item'}`; break;
+        case 'number':    insert = `\n1. ${sel || 'item'}`; break;
+        case 'check':     insert = `\n- [ ] ${sel || 'task'}`; break;
+        case 'quote':     insert = `\n> ${sel || 'quote'}\n`; break;
+        case 'divider':   insert = `\n${'─'.repeat(30)}\n`; break;
+        default: return;
+    }
+    ta.value = ta.value.substring(0, start) + insert + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + insert.length;
+    ta.focus();
+    scheduleAutoSave();
+    updateEditorMeta();
+}
+
+// ============================================================
+//  RENDER NOTES
+// ============================================================
+function renderNotes() {
+    const query = searchInput.value.toLowerCase().trim();
+    let pool;
+
+    if (currentCategory === 'trash') {
+        pool = trashNotes;
+    } else {
+        pool = notes.filter(n => {
+            if (currentCategory === 'starred') return n.starred;
+            if (currentCategory === 'recent') return true; // show all, sorted by recent
+            if (['personal','work','ideas','journal'].includes(currentCategory)) return n.category === currentCategory;
+            return true; // all
+        });
+    }
+
+    // Search filter
+    if (query) {
+        pool = pool.filter(n => n.title.toLowerCase().includes(query) || n.content.toLowerCase().includes(query));
+    }
+
+    // Sort
+    pool = sortNotes(pool);
+
+    // Render
+    notesContainer.innerHTML = '';
+    if (pool.length === 0) {
+        emptyState.classList.remove('hidden');
+        if (currentCategory === 'trash') {
+            emptyState.querySelector('.empty-title').textContent = 'Trash is empty';
+            emptyState.querySelector('.empty-sub').textContent = 'Deleted notes will appear here';
+        } else if (query) {
+            emptyState.querySelector('.empty-title').textContent = 'No results';
+            emptyState.querySelector('.empty-sub').innerHTML = `No notes match "<strong>${esc(query)}</strong>"`;
+        } else {
+            emptyState.querySelector('.empty-title').textContent = 'No notes yet';
+            emptyState.querySelector('.empty-sub').innerHTML = 'Tap <strong>+</strong> to create your first note';
+        }
+        return;
+    }
+    emptyState.classList.add('hidden');
+
+    pool.forEach((note, idx) => {
+        const card = document.createElement('div');
+        card.className = `note-card${note.starred ? ' starred' : ''}`;
+        card.style.animationDelay = `${idx * 0.04}s`;
+
+        // Background color
+        if (note.color) {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            card.style.background = isDark ? adjustColorForDark(note.color) : note.color;
+            card.setAttribute('data-color', note.color);
+        }
+
+        // Category dot
+        const catDot = note.category && catColors[note.category]
+            ? `<span class="card-category" style="background:${catColors[note.category]}"></span>` : '';
+
+        // Star icon
+        const starIcon = note.starred
+            ? `<svg class="card-star" viewBox="0 0 24 24" fill="currentColor"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>` : '';
+
+        // Preview
+        const preview = note.content.replace(/\n/g, ' ').substring(0, 120) || 'No content';
+
+        // Attachments count
+        const attCount = (note.attachments || []).length;
+        const attBadge = attCount > 0
+            ? `<span class="card-attachments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>${attCount}</span>` : '';
+
+        // Date
+        const dateStr = formatShortDate(new Date(note.updatedAt));
+
+        // Trash actions
+        let trashActions = '';
+        if (currentCategory === 'trash') {
+            trashActions = `
+                <div style="display:flex;gap:6px;margin-top:8px">
+                    <button class="trash-restore" data-id="${note.id}" style="font-size:.75rem;padding:4px 10px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600">Restore</button>
+                    <button class="trash-delete" data-id="${note.id}" style="font-size:.75rem;padding:4px 10px;border-radius:6px;border:1px solid var(--danger);background:transparent;color:var(--danger);cursor:pointer;font-family:var(--font);font-weight:600">Delete</button>
+                </div>`;
+        }
+
+        card.innerHTML = `
+            ${starIcon}${catDot}
+            <div class="card-title">${esc(note.title)}</div>
+            <div class="card-preview">${esc(preview)}</div>
+            <div class="card-footer">
+                <span>${dateStr}</span>
+                ${attBadge}
+            </div>
+            ${trashActions}
+        `;
+
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.trash-restore') || e.target.closest('.trash-delete')) return;
+            openEditor(note.id);
+        });
+
+        notesContainer.appendChild(card);
+    });
+
+    // Trash action buttons
+    if (currentCategory === 'trash') {
+        $$('.trash-restore').forEach(btn => btn.addEventListener('click', () => restoreFromTrash(btn.dataset.id)));
+        $$('.trash-delete').forEach(btn => btn.addEventListener('click', () => permanentlyDeleteFromTrash(btn.dataset.id)));
+    }
+}
+
+function sortNotes(arr) {
+    return [...arr].sort((a, b) => {
+        switch (currentSort) {
+            case 'created': return new Date(b.createdAt) - new Date(a.createdAt);
+            case 'alpha': return a.title.localeCompare(b.title);
+            default: return new Date(b.updatedAt) - new Date(a.updatedAt);
+        }
+    });
+}
+
+// ============================================================
+//  BADGES
+// ============================================================
+function updateBadges() {
+    const active = notes.filter(n => !n.deletedAt);
+    const setB = (id, val) => { const el = $(id); if (el) el.textContent = val || ''; };
+    setB('#badgeAll', active.length || '');
+    setB('#badgeStarred', active.filter(n => n.starred).length || '');
+    setB('#badgePersonal', active.filter(n => n.category === 'personal').length || '');
+    setB('#badgeWork', active.filter(n => n.category === 'work').length || '');
+    setB('#badgeIdeas', active.filter(n => n.category === 'ideas').length || '');
+    setB('#badgeJournal', active.filter(n => n.category === 'journal').length || '');
+    setB('#badgeTrash', trashNotes.length || '');
+}
+
+// ============================================================
+//  TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(message, undoFn) {
+    clearTimeout(toastTimer);
+    toastMsg.textContent = message;
+    toastEl.classList.remove('hidden');
+    requestAnimationFrame(() => toastEl.classList.add('show'));
+
+    if (undoFn) {
+        toastUndo.classList.remove('hidden');
+        toastUndo.onclick = () => { undoFn(); hideToast(); };
+    } else {
+        toastUndo.classList.add('hidden');
+    }
+    toastTimer = setTimeout(hideToast, 4000);
+}
+function hideToast() {
+    toastEl.classList.remove('show');
+    setTimeout(() => toastEl.classList.add('hidden'), 300);
+}
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function closeFab() { fabOpen = false; fabBtn.classList.remove('open'); fabMenu.classList.add('hidden'); }
+function esc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+function formatShortDate(d) {
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+    if (diff < 604800000) return d.toLocaleDateString('en-US', { weekday: 'short' });
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function formatRelativeTime(d) {
+    const diff = Date.now() - d.getTime();
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' min ago';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + ' hours ago';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+// ── BOOT ──
+init();
+
+})();
+s

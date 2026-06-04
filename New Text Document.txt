@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vora Notes — Your Ideas, Beautifully Organized</title>
+    <meta name="description" content="Vora Notes is a beautiful, Samsung-inspired note-taking app with document attachments, templates, categories, and dark mode.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="banner-visible">
+    <!-- ===== SIDEBAR ===== -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                <span>Vora Notes</span>
+            </div>
+            <button id="sidebarCloseBtn" class="icon-btn sidebar-close-btn" title="Close sidebar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-item active" data-category="all">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+                <span>All notes</span>
+                <span class="nav-badge" id="badgeAll">0</span>
+            </div>
+            <div class="nav-item" data-category="starred">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                <span>Starred</span>
+                <span class="nav-badge" id="badgeStarred">0</span>
+            </div>
+            <div class="nav-item" data-category="recent">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Recent</span>
+            </div>
+
+            <div class="nav-divider"></div>
+            <div class="nav-section-title">CATEGORIES</div>
+
+            <div class="nav-item" data-category="personal">
+                <span class="cat-dot" style="background:#6C5CE7"></span>
+                <span>Personal</span>
+                <span class="nav-badge" id="badgePersonal">0</span>
+            </div>
+            <div class="nav-item" data-category="work">
+                <span class="cat-dot" style="background:#0984E3"></span>
+                <span>Work</span>
+                <span class="nav-badge" id="badgeWork">0</span>
+            </div>
+            <div class="nav-item" data-category="ideas">
+                <span class="cat-dot" style="background:#00B894"></span>
+                <span>Ideas</span>
+                <span class="nav-badge" id="badgeIdeas">0</span>
+            </div>
+            <div class="nav-item" data-category="journal">
+                <span class="cat-dot" style="background:#FDCB6E"></span>
+                <span>Journal</span>
+                <span class="nav-badge" id="badgeJournal">0</span>
+            </div>
+
+            <div class="nav-divider"></div>
+
+            <div class="nav-item" data-category="trash">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <span>Trash</span>
+                <span class="nav-badge" id="badgeTrash">0</span>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button id="themeToggle" class="icon-btn" title="Toggle theme">
+                <svg id="iconSun" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <svg id="iconMoon" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+            </button>
+            <a href="https://play.google.com/store/apps/details?id=com.samsung.android.app.notes" target="_blank" rel="noopener" class="download-apk-btn" title="Get Samsung Notes on Play Store">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Get App
+            </a>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN AREA ===== -->
+    <main id="mainArea" class="main-area">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="hamburgerBtn" class="icon-btn" title="Open sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <h2 id="currentCategoryTitle" class="topbar-title">All notes</h2>
+            </div>
+            <div class="topbar-center">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input type="text" id="searchInput" placeholder="Search notes…" autocomplete="off">
+                </div>
+            </div>
+            <div class="topbar-right">
+                <button id="sortBtn" class="icon-btn" title="Sort">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h13M3 8h9M3 12h5m0 0l4 4m-4-4l4-4"/></svg>
+                </button>
+                <button id="viewToggleBtn" class="icon-btn" title="Toggle view">
+                    <svg id="iconGrid" class="view-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    <svg id="iconList" class="view-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Notes Container -->
+        <div id="notesContainer" class="notes-container grid-view"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <p class="empty-title">No notes yet</p>
+            <p class="empty-sub">Tap <strong>+</strong> to create your first note</p>
+        </div>
+
+        <!-- FAB -->
+        <button id="fabBtn" class="fab" title="Create new note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14m7-7H5"/></svg>
+        </button>
+    </main>
+
+    <!-- ===== EDITOR OVERLAY ===== -->
+    <div id="editorOverlay" class="editor-overlay">
+        <div class="editor-panel">
+            <div class="editor-topbar">
+                <button id="editorBackBtn" class="icon-btn" title="Back">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <div class="editor-topbar-actions">
+                    <button id="editorStarBtn" class="icon-btn" title="Star note">
+                        <svg id="starOutline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                        <svg id="starFilled" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                    </button>
+                    <button id="editorAttachBtn" class="icon-btn" title="Attach document">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                    </button>
+                    <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.svg,.mp3,.mp4,.zip" hidden>
+                    <div class="editor-menu-wrapper">
+                        <button id="editorMenuBtn" class="icon-btn" title="More options">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                        </button>
+                        <div id="editorDropdown" class="dropdown-menu">
+                            <button class="dropdown-item" id="menuShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg><span>Share</span></button>
+                            <button class="dropdown-item" id="menuCategory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg><span>Category</span></button>
+                            <div class="dropdown-category-submenu" id="categorySubmenu">
+                                <button class="dropdown-item cat-option" data-cat="personal"><span class="cat-dot" style="background:#6C5CE7"></span>Personal</button>
+                                <button class="dropdown-item cat-option" data-cat="work"><span class="cat-dot" style="background:#0984E3"></span>Work</button>
+                                <button class="dropdown-item cat-option" data-cat="ideas"><span class="cat-dot" style="background:#00B894"></span>Ideas</button>
+                                <button class="dropdown-item cat-option" data-cat="journal"><span class="cat-dot" style="background:#FDCB6E"></span>Journal</button>
+                                <button class="dropdown-item cat-option" data-cat="none"><span class="cat-dot" style="background:#999"></span>None</button>
+                            </div>
+                            <button class="dropdown-item" id="menuColor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg><span>Background</span></button>
+                            <div class="color-palette" id="colorPalette">
+                                <button class="color-swatch active" data-color="default" style="background:#ffffff; border:1px solid #ddd" title="Default"></button>
+                                <button class="color-swatch" data-color="#FFF9C4" style="background:#FFF9C4" title="Yellow"></button>
+                                <button class="color-swatch" data-color="#C8E6C9" style="background:#C8E6C9" title="Green"></button>
+                                <button class="color-swatch" data-color="#BBDEFB" style="background:#BBDEFB" title="Blue"></button>
+                                <button class="color-swatch" data-color="#F8BBD0" style="background:#F8BBD0" title="Pink"></button>
+                                <button class="color-swatch" data-color="#D1C4E9" style="background:#D1C4E9" title="Purple"></button>
+                                <button class="color-swatch" data-color="#FFE0B2" style="background:#FFE0B2" title="Orange"></button>
+                                <button class="color-swatch" data-color="#E0E0E0" style="background:#E0E0E0" title="Gray"></button>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item danger" id="menuDelete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg><span>Delete</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Title -->
+            <div class="editor-title-row">
+                <input type="text" id="editorTitle" placeholder="Title" autocomplete="off">
+            </div>
+
+            <!-- Attachments Area -->
+            <div id="attachmentsArea" class="attachments-area hidden">
+                <div class="attachments-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                    <span>Attachments</span>
+                </div>
+                <div id="attachmentsList" class="attachments-list"></div>
+            </div>
+
+            <!-- Editor Content -->
+            <div class="editor-content-wrapper">
+                <textarea id="editorContent" placeholder="Start writing…"></textarea>
+            </div>
+
+            <!-- Formatting Toolbar -->
+            <div class="format-toolbar">
+                <div class="format-toolbar-scroll">
+                    <button class="fmt-btn" data-action="bold" title="Bold"><strong>B</strong></button>
+                    <button class="fmt-btn" data-action="italic" title="Italic"><em>I</em></button>
+                    <button class="fmt-btn" data-action="underline" title="Underline"><span style="text-decoration:underline">U</span></button>
+                    <button class="fmt-btn" data-action="strike" title="Strikethrough"><span style="text-decoration:line-through">S</span></button>
+                    <span class="fmt-divider"></span>
+                    <button class="fmt-btn" data-action="h1" title="Heading 1">H1</button>
+                    <button class="fmt-btn" data-action="h2" title="Heading 2">H2</button>
+                    <button class="fmt-btn" data-action="h3" title="Heading 3">H3</button>
+                    <span class="fmt-divider"></span>
+                    <button class="fmt-btn" data-action="bullet" title="Bullet list">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                    </button>
+                    <button class="fmt-btn" data-action="check" title="Checklist">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7" rx="1"/><path d="M5 7l2 2 3-3"/><path d="M14 6h7M14 12h7M14 18h7"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                    </button>
+                    <span class="fmt-divider"></span>
+                    <button class="fmt-btn" data-action="quote" title="Quote">❝</button>
+                    <button class="fmt-btn" data-action="divider" title="Divider">—</button>
+                    <button class="fmt-btn" data-action="template" title="Templates">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+                    </button>
+                </div>
+                <div class="editor-meta">
+                    <span id="editorWordCount">0 words</span>
+                    <span class="meta-dot">·</span>
+                    <span id="editorLastEdited">Just now</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TEMPLATE MODAL ===== -->
+    <div id="templateModal" class="modal-overlay hidden">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <h3>Choose a Template</h3>
+                <button id="templateModalClose" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div class="template-grid">
+                <div class="template-card" data-template="blank">
+                    <div class="template-preview"><div class="tline"></div><div class="tline short"></div><div class="tline"></div></div>
+                    <span>Blank Note</span>
+                </div>
+                <div class="template-card" data-template="dream">
+                    <div class="template-preview"><div class="tline accent"></div><div class="tline short"></div><div class="tline accent"></div><div class="tline short"></div><div class="tline accent"></div></div>
+                    <span>Daily Dream Log</span>
+                </div>
+                <div class="template-card" data-template="meeting">
+                    <div class="template-preview"><div class="tline accent"></div><div class="tline"></div><div class="tline"></div><div class="tline accent"></div><div class="tline"></div></div>
+                    <span>Meeting Notes</span>
+                </div>
+                <div class="template-card" data-template="todo">
+                    <div class="template-preview"><div class="tcheck"></div><div class="tcheck"></div><div class="tcheck"></div><div class="tcheck"></div></div>
+                    <span>To-Do List</span>
+                </div>
+                <div class="template-card" data-template="cornell">
+                    <div class="template-preview"><div class="tline accent"></div><div class="tline"></div><div class="tline"></div><div class="tline accent"></div><div class="tline short"></div></div>
+                    <span>Cornell Notes</span>
+                </div>
+                <div class="template-card" data-template="gratitude">
+                    <div class="template-preview"><div class="tline accent"></div><div class="tline short"></div><div class="tline short"></div><div class="tline short"></div></div>
+                    <span>Gratitude Journal</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FAB MENU ===== -->
+    <div id="fabMenu" class="fab-menu hidden">
+        <button class="fab-option" data-action="blank">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>New Note</span>
+        </button>
+        <button class="fab-option" data-action="template">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+            <span>From Template</span>
+        </button>
+    </div>
+
+    <!-- ===== SORT DROPDOWN ===== -->
+    <div id="sortDropdown" class="dropdown-menu sort-dropdown hidden">
+        <button class="dropdown-item active" data-sort="updated"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>Date modified</span></button>
+        <button class="dropdown-item" data-sort="created"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span>Date created</span></button>
+        <button class="dropdown-item" data-sort="alpha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><path d="M3 4h13M3 8h9M3 12h5m0 0l4 4m-4-4l4-4"/></svg><span>Title A–Z</span></button>
+    </div>
+
+    <!-- ===== DOWNLOAD APK BANNER ===== -->
+    <div id="downloadBanner" class="download-banner">
+        <div class="banner-glow"></div>
+        <div class="banner-content">
+            <div class="banner-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div class="banner-text">
+                <h4>Get Vora Notes on Android</h4>
+                <p>Take your notes everywhere — download the APK</p>
+            </div>
+            <a href="https://play.google.com/store/apps/details?id=com.samsung.android.app.notes" target="_blank" rel="noopener" class="banner-download-btn" id="downloadApkBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download APK
+            </a>
+        </div>
+        <button id="bannerCloseBtn" class="banner-close" title="Dismiss">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden">
+        <span id="toastMsg"></span>
+        <button id="toastUndo" class="toast-undo hidden">Undo</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
